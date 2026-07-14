@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rehman Travels — AI Assistant</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <!-- Demo page content -->
+    <main class="demo-page">
+        <h1>Rehman Travels</h1>
+        <p>Ask our AI assistant about visas, flights, tour packages, hotels, Umrah/Hajj and travel insurance.</p>
+    </main>
+
+    <!-- Floating launcher -->
+    <button id="chat-launcher" aria-label="Open chat">💬</button>
+
+    <!-- Chat widget -->
+    <section id="chat-widget" class="hidden" role="dialog" aria-label="Travel assistant">
+        <header id="chat-header">
+            <span>Travel Assistant</span>
+            <button id="close-chat" aria-label="Close chat">×</button>
+        </header>
+        <div id="messages" aria-live="polite"></div>
+        <div id="typing-indicator" class="hidden">Assistant is typing…</div>
+        <form id="chat-input">
+            <input type="text" id="user-message" autocomplete="off"
+                   placeholder="Type your message…" aria-label="Message" />
+            <button type="submit" id="send-message">Send</button>
+        </form>
+    </section>
+
+    <!-- Configure the API base if the widget is served from a different origin. -->
+    <script>window.CHATBOT_API_BASE = window.CHATBOT_API_BASE || "";</script>
+    <script src="widget.js"></script>
+</body>
+</html>

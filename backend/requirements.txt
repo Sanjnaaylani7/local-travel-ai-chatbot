@@ -1,0 +1,17 @@
+# Backend runtime dependencies (pinned for reproducible production builds).
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+pydantic==2.13.4
+SQLAlchemy==2.0.51
+python-dotenv==1.2.2
+requests==2.34.2
+
+# Embeddings + vector search (backend computes query embeddings locally).
+numpy==2.5.1
+faiss-cpu==1.14.3
+sentence-transformers==5.6.0
+torch==2.13.0
+
+# Optional: Prometheus metrics at /metrics. Safe to omit; the app degrades
+# gracefully when this package is not installed.
+prometheus-fastapi-instrumentator

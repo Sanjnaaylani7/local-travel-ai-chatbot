@@ -1,0 +1,17 @@
+database:
+  host: "localhost"
+  port: 6333
+  username: "your_username"
+  password: "your_password"
+  collection_name: "travel_data"
+  ssl: false
+
+qdrant:
+  api_key: "your_api_key"
+  timeout: 30
+  max_retries: 3
+  retry_delay: 2
+
+logging:
+  level: "INFO"
+  file: "logs/qdrant.log"

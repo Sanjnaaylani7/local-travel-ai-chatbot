@@ -1,0 +1,61 @@
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    environment:
+      ENV: production
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////app/data/app.db}
+      MODEL_URL: http://model_server:8001/infer
+      VECTOR_STORE_DIR: /vector_store
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-60}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-}
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
+    volumes:
+      - backend_data:/app/data
+      # Shared read-only vector index produced by the data pipeline.
+      - ../data_pipeline/output/vector_store:/vector_store:ro
+      # Cache embedding model between restarts.
+      - hf_cache:/home/appuser/.cache/huggingface
+    depends_on:
+      - model_server
+    restart: unless-stopped
+
+  model_server:
+    build:
+      context: ../model_server
+      dockerfile: Dockerfile
+    environment:
+      MODEL_NAME: ${MODEL_NAME:-google/flan-t5-small}
+      PORT: 8001
+    volumes:
+      - model_cache:/models
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../web_widget/widget:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend_data:
+  model_cache:
+  hf_cache:
