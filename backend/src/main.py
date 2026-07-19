@@ -75,6 +75,24 @@ async def root():
     return {"message": f"Welcome to the {settings.app_name} API!", "status": "running"}
 
 
+# --- Optional: serve the chat widget from the backend (dev/single-node) ---
+# In production Nginx serves these static files; this is a convenience so the
+# demo works from a single process at /ui/.
+try:
+    from pathlib import Path
+
+    from fastapi.staticfiles import StaticFiles
+
+    from src.core.config import PROJECT_ROOT
+
+    _widget_dir = Path(PROJECT_ROOT) / "web_widget" / "widget"
+    if _widget_dir.is_dir():
+        app.mount("/ui", StaticFiles(directory=str(_widget_dir), html=True), name="widget")
+        logger.info("Serving chat widget at /ui/ from %s", _widget_dir)
+except Exception as exc:  # noqa: BLE001
+    logger.info("Widget static mount skipped (%s)", exc)
+
+
 # --- Optional Prometheus metrics ---
 if settings.enable_metrics:
     try:

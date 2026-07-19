@@ -11,6 +11,26 @@ from src.services.vector_store import vector_store
 logger = get_logger(__name__)
 
 
+def _expand_query(query: str) -> str:
+    """Broaden vague queries so retrieval surfaces the right knowledge."""
+    q = (query or "").lower()
+    parts = [query]
+    if any(w in q for w in ("service", "services", "offer", "provide", "what do you")):
+        parts.append(
+            "flight booking visa assistance hotel reservations umrah hajj packages "
+            "customized tour packages car rentals world tours pakistan tours"
+        )
+    if "hotel" in q:
+        parts.append("hotel reservation accommodation booking")
+    if "airline" in q or ("flight" in q and "book" not in q):
+        parts.append("popular airlines partners")
+    if "umrah" in q or "hajj" in q:
+        parts.append("umrah hajj packages executive economy starting from")
+    if "visa" in q and any(w in q for w in ("price", "cost", "how much", "fee")):
+        parts.append("visit visa destinations starting from")
+    return " ".join(parts)
+
+
 class RetrievalService:
     def __init__(self, store=vector_store):
         self.store = store
@@ -24,8 +44,10 @@ class RetrievalService:
             return []
 
         threshold = settings.similarity_threshold if threshold is None else threshold
-        query_vec = embed_query(query)
-        candidates = self.store.search(query_vec, top_k=top_k)
+        search_query = _expand_query(query)
+        query_vec = embed_query(search_query)
+        k = top_k if top_k is not None else settings.top_k
+        candidates = self.store.search(query_vec, top_k=k)
         relevant = [c for c in candidates if c.get("score", 0.0) >= threshold]
         logger.debug(
             "Retrieval: query=%r candidates=%d relevant=%d",

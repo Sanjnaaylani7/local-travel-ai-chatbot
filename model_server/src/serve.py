@@ -21,9 +21,13 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("model_server")
 
+# Default to flan-t5-small: it is fast on CPU and, with the tuned decoding below,
+# produces clean grounded answers. Set MODEL_NAME=google/flan-t5-base (or larger)
+# on a GPU host for higher quality.
 MODEL_NAME = os.getenv("MODEL_NAME", "google/flan-t5-small")
-MAX_INPUT_TOKENS = int(os.getenv("MAX_INPUT_TOKENS", "512"))
-MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "200"))
+MAX_INPUT_TOKENS = int(os.getenv("MAX_INPUT_TOKENS", "1024"))
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "220"))
+NUM_BEAMS = int(os.getenv("NUM_BEAMS", "1"))
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8001"))
 
@@ -63,15 +67,20 @@ async def infer(request: InferenceRequest):
             max_length=MAX_INPUT_TOKENS,
         )
         with torch.no_grad():
+            # Deterministic beam search keeps the (small) model faithful to the
+            # retrieved context instead of sampling incoherent fragments.
             outputs = model.generate(
                 **inputs,
                 max_new_tokens=request.max_new_tokens or MAX_NEW_TOKENS,
-                min_new_tokens=16,
-                do_sample=True,
-                temperature=0.7,
-                top_p=0.9,
-                repetition_penalty=1.2,
-                no_repeat_ngram_size=3,
+                min_new_tokens=24,
+                num_beams=NUM_BEAMS,
+                do_sample=False,
+                early_stopping=True,
+                # Keep a light repetition penalty only. Aggressive de-duplication
+                # (no_repeat_ngram_size) corrupts legitimately repetitive content
+                # such as price/airline lists ("... Visit Visa Starting from $...").
+                repetition_penalty=1.1,
+                length_penalty=1.0,
             )
         text = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
         return JSONResponse(content={"response": text})

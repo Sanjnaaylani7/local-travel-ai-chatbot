@@ -10,7 +10,7 @@
     <!-- Demo page content -->
     <main class="demo-page">
         <h1>Rehman Travels</h1>
-        <p>Ask our AI assistant about visas, flights, tour packages, hotels, Umrah/Hajj and travel insurance.</p>
+        <p>Ask our AI assistant about visas, flights, tour packages, hotels, Umrah/Hajj and car rentals.</p>
     </main>
 
     <!-- Floating launcher -->
@@ -23,7 +23,9 @@
             <button id="close-chat" aria-label="Close chat">×</button>
         </header>
         <div id="messages" aria-live="polite"></div>
+        <div id="suggestions"></div>
         <div id="typing-indicator" class="hidden">Assistant is typing…</div>
+        <div id="disclaimer">Visa approval, fares &amp; seat availability require final confirmation by our team.</div>
         <form id="chat-input">
             <input type="text" id="user-message" autocomplete="off"
                    placeholder="Type your message…" aria-label="Message" />
@@ -31,8 +33,24 @@
         </form>
     </section>
 
-    <!-- Configure the API base if the widget is served from a different origin. -->
-    <script>window.CHATBOT_API_BASE = window.CHATBOT_API_BASE || "";</script>
+    <!-- Configure the API base if the widget is served from a different origin.
+         Same-origin by default (e.g. behind nginx); when opened via the local
+         dev static server on :3000 it targets the backend on :8000. -->
+    <script>
+      window.CHATBOT_API_BASE = window.CHATBOT_API_BASE ||
+        (location.port === "3000" ? "http://localhost:8000" : "");
+      window.CHATBOT_CONFIG = window.CHATBOT_CONFIG || {
+        welcome: "Hi! I'm the Rehman Travels assistant. Ask me about visas, flights, tour packages, hotels, Umrah/Hajj or car rentals.",
+        suggestions: [
+          "What are the visit visa prices?",
+          "Tell me about your Umrah packages",
+          "Which airlines do you work with?",
+          "Do you offer car rentals?"
+        ],
+        whatsapp: "923111786785",
+        contactEmail: "info@rehmantravel.com"
+      };
+    </script>
     <script src="widget.js"></script>
 </body>
 </html>

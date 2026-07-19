@@ -95,7 +95,7 @@ class Settings(BaseModel):
     top_k: int = Field(default_factory=lambda: _get_int("TOP_K", 4))
     # Minimum cosine similarity for a chunk to be considered relevant.
     similarity_threshold: float = Field(
-        default_factory=lambda: _get_float("SIMILARITY_THRESHOLD", 0.30)
+        default_factory=lambda: _get_float("SIMILARITY_THRESHOLD", 0.25)
     )
 
     # --- Conversation ---
